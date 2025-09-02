@@ -1,4 +1,4 @@
-import {sequelize} from "../config/config.js"
+import { sequelize } from "../model/index.model.js"
 
 try {
     await sequelize.sync({ force: true });
