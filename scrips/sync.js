@@ -1,7 +1,7 @@
-import sequelize from "../model/index.js"
+import {sequelize} from "../config/config.js"
 
 try {
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ force: true });
     console.log('All models were synchronized successfully.');
 } catch (error) {
     console.log(`Erro al sincronizar ❌ ${error}`)

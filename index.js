@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import { PORT, RAIZ } from "./config/config.js";
-import sequelize from "./model/index.js"
+import {sequelize} from './model/index.js'
 import allRouter from "./routes/index.js";
 
 const app = express();
