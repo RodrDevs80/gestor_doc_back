@@ -102,19 +102,6 @@ const Archivo = sequelize.define('Archivo', {
       }
     }
   },
-  fechaSubida: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    validate: {
-      isDate: {
-        msg: "La fecha de subida debe ser una fecha válida"
-      },
-      isBefore: {
-        args: new Date().toISOString(),
-        msg: "La fecha de subida no puede ser futura"
-      }
-    }
-  },
   idProducto: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -143,7 +130,9 @@ const Archivo = sequelize.define('Archivo', {
   }
 }, {
   tableName: 'archivo',
-  timestamps: false,
+  timestamps: true,
+  createdAt: 'fechaSubida',
+  updatedAt: false,
   hooks: {
     beforeValidate: (archivo) => {
       // Limpiar y normalizar datos antes de validar

@@ -3,15 +3,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 
-// const storage = multer.diskStorage({
-//     destination: (req, file, cb) => {
-//         cb(null, `uploads/productos/${req.params.idProducto || 'temp'}`);
-//     },
-//     filename: (req, file, cb) => {
-//         cb(null, Date.now() + path.extname(file.originalname));
-//     }
-// });
-
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         try {
