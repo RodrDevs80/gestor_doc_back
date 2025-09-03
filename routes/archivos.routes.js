@@ -2,10 +2,8 @@ import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import validateExistencia from "../middleware/validateExistencia.js";
 import Producto from "../model/Producto.model.js";
-import fs from "fs"
 import { deleteArchivo, downloadArchivo, getAllArchivosByIdProducto, uploadArchivo } from "../controller/archivo.controller.js";
-import Archivo from "../model/Archivo.model.js";
-import path from "path";
+
 //: POST /api/v1/files/upload  implementar lógica: (ej: /uploads/productos/{id}).
 //multipart/form-data
 // Crear un endpoint para obtener la lista de archivos de un producto específico
