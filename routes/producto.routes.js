@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { createProducto, deleteLogicoProducto, deleteProducto, getAllProductos, getAllProductosActivos, getProductoById, updateProducto } from "../controller/producto.controller.js";
+import { createProducto, deleteLogicoProducto, deleteProducto, getAllProductos, getAllProductosActivos, getProductoById, modificarImagenPrincipalDeProducto, updateProducto } from "../controller/producto.controller.js";
+
 
 const routerProducto = Router();
 
@@ -20,5 +21,7 @@ routerProducto.delete('/:id', deleteProducto);
 // Eliminación lógica
 routerProducto.patch("/:id", deleteLogicoProducto);
 
+
+routerProducto.patch("/modificar-imagenUrl/:id/:idImagen", modificarImagenPrincipalDeProducto);
 
 export default routerProducto;

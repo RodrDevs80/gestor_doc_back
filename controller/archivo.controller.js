@@ -2,6 +2,10 @@ import Archivo from "../model/Archivo.model.js";
 import Producto from "../model/Producto.model.js";
 import fs from 'fs';
 import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const uploadArchivo = async (req, res) => {
   try {
@@ -142,4 +146,184 @@ const deleteArchivo = async (req, res) => {
     }
   }
 }
-export { uploadArchivo, getAllArchivosByIdProducto, downloadArchivo, deleteArchivo }
+const uploadsArchivos = async (req, res) => {
+  try {
+    const { id } = req.foundRecord;
+
+
+    await req.files.forEach(archivo => Archivo.create({
+      nombre: archivo.filename,
+      nombreOriginal: archivo.originalname,
+      tipo: archivo.mimetype,
+      peso: archivo.size,
+      ruta: archivo.path,
+      idProducto: id
+    }))
+
+
+    res.json({
+      status: 201,
+      message: 'Archivos subidos y creados exitosamente',
+      files: req.files
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Error al intentar crear nuevo Archivo",
+      message: err.message
+    });
+  }
+}
+
+const servidorDeImagenes = (req, res) => {
+  try {
+    const { productId, fileName } = req.params;
+    const imagePath = path.join(__dirname, '..', 'uploads', 'productos', productId, fileName);
+
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).json({
+        error: "Imagen no encontrada",
+        message: `La imagen ${fileName} no existe para el producto ${productId}`
+      });
+    }
+
+    let contentType = 'application/octet-stream';
+    if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+      contentType = 'image/jpeg';
+    } else if (fileName.endsWith('.png')) {
+      contentType = 'image/png';
+    } else if (fileName.endsWith('.gif')) {
+      contentType = 'image/gif';
+    } else if (fileName.endsWith('.webp')) {
+      contentType = 'image/webp';
+    }
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache por 1 día
+
+    res.sendFile(imagePath);
+
+  } catch (error) {
+    console.error('Error al servir imagen:', error);
+    res.status(500).json({
+      error: "Error al cargar la imagen",
+      message: error.message
+    });
+  }
+}
+
+const getAllImgsURLByIdProductos = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const uploadsDir = path.join(__dirname, '..', 'uploads', 'productos', productId);
+
+
+    const archivosDB = await Archivo.findAll({
+      where: { idProducto: productId },
+      attributes: ['id', 'nombre', 'nombreOriginal', 'tipo', 'peso', 'ruta', 'fechaSubida']
+    });
+
+
+    let filesExist = [];
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      filesExist = files.filter(file => {
+        const ext = path.extname(file).toLowerCase();
+        return ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext);
+      });
+    }
+
+
+    const imageRoutes = archivosDB.map(archivo => {
+      const fileExists = filesExist.includes(archivo.nombre);
+
+      return {
+        id: archivo.id,
+        filename: archivo.nombre,
+        originalName: archivo.nombreOriginal,
+        type: archivo.tipo,
+        size: archivo.peso,
+        uploadDate: archivo.fechaSubida,
+        exists: fileExists,
+        url: `/uploads/productos/${productId}/${archivo.nombre}`,
+        apiUrl: `http://localhost:3000/api/v1/files/image/${productId}/${archivo.nombre}`,
+        downloadUrl: `http://localhost:3000/api/v1/files/download/${archivo.nombre}`
+      };
+    });
+
+
+    const filterImgRoutes = imageRoutes.filter(archivo => archivo.type.startsWith('image'));
+
+    res.status(200).json({
+      success: true,
+      productId: parseInt(productId),
+      totalImages: filterImgRoutes.length,
+      images: filterImgRoutes
+    });
+
+  } catch (error) {
+    console.error('Error al obtener imágenes:', error);
+    res.status(500).json({
+      success: false,
+      error: "Error al obtener las imágenes del producto",
+      message: error.message
+    });
+  }
+}
+const getImgById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const img = await Archivo.findByPk(id);
+
+    if (!img) {
+      return res.status(404).json({
+        error: "Imagen no encontrada",
+        message: `La imagen no existe para el producto`
+      });
+    }
+    if (!img.tipo.startsWith('image')) {
+      return res.status(404).json({
+        error: "Imagen no encontrada",
+        message: `El archivo solicitado no es una imagen`
+      });
+    }
+
+    const imagePath = path.join(__dirname, '..', 'uploads', 'productos', img.idProducto.toString(), img.nombre.toString());
+
+
+
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).json({
+        error: "Imagen no encontrada",
+        message: `La imagen ${img.nombre} no existe para el producto con el ID:  ${img.idProducto}`
+      });
+    }
+
+
+    const imgConRutaDinamica = {
+      id: img.id,
+      filename: img.nombre,
+      originalName: img.nombreOriginal,
+      type: img.tipo,
+      size: img.peso,
+      uploadDate: img.fechaSubida,
+      url: `/uploads/productos/${img.idProducto}/${img.nombre}`,
+      apiUrl: `http://localhost:3000/api/v1/files/image/${img.idProducto}/${img.nombre}`,
+      downloadUrl: `http://localhost:3000/api/v1/files/download/${img.nombre}`
+    };
+
+    res.status(200).json({
+      success: true,
+      imagen: imgConRutaDinamica
+    });
+
+  } catch (error) {
+    console.error('Error al obtener imagen:', error);
+    res.status(500).json({
+      success: false,
+      error: "Error al obtener la imagen del producto",
+      message: error.message
+    });
+  }
+}
+export { uploadArchivo, getAllArchivosByIdProducto, downloadArchivo, deleteArchivo, uploadsArchivos, servidorDeImagenes, getAllImgsURLByIdProductos, getImgById }

@@ -201,5 +201,61 @@ const deleteLogicoProducto = async (req, res) => {
     });
   }
 }
+const modificarImagenPrincipalDeProducto = async (req, res) => {
+  try {
+    const { id, idImagen } = req.params
 
-export { getAllProductos, getAllProductosActivos, getProductoById, createProducto, updateProducto, deleteProducto, deleteLogicoProducto }
+    // Validación del ID
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({
+        status: 400,
+        title: 'Bad Request',
+        message: 'ID inválido'
+      });
+    }
+    if (isNaN(idImagen) || idImagen <= 0) {
+      return res.status(400).json({
+        status: 400,
+        title: 'Bad Request',
+        message: 'ID imagen inválido'
+      });
+    }
+
+    const producto = await Producto.findByPk(id);
+    const img = await Archivo.findOne({ where: { id: idImagen } })
+
+
+    if (!producto) {
+      return res.status(404).json({
+        status: 404,
+        title: 'Not Found',
+        message: 'No existe el Producto buscado'
+      });
+    }
+
+    if (img.idProducto = !id) {
+      return res.status(404).json({
+        status: 404,
+        title: 'Not Found',
+        message: 'La imagen no corresponde al Producto buscado'
+      });
+    }
+
+    await Producto.update(
+      { imagenUrl: `http://localhost:3000/api/v1/files/image/${id}/${img.nombre}` },
+      { where: { id } }
+    );
+
+    res.status(200).json({
+      status: 200,
+      message: `La imagen del Producto a sido modificada correctamente`
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Error al intentar modificar la imagen del Producto",
+      message: err.message
+    });
+  }
+}
+
+export { getAllProductos, getAllProductosActivos, getProductoById, createProducto, updateProducto, deleteProducto, deleteLogicoProducto, modificarImagenPrincipalDeProducto }

@@ -71,9 +71,6 @@ const Producto = sequelize.define("Producto", {
       notEmpty: {
         msg: "La URL de la imagen no puede estar vacía"
       },
-      isUrl: {
-        msg: "Debe proporcionar una URL válida para la imagen"
-      },
       len: {
         args: [5, 500],
         msg: "La URL de la imagen debe tener entre 5 y 500 caracteres"
