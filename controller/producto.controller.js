@@ -1,5 +1,5 @@
 import Producto from "../model/Producto.model.js";
-
+import Archivo from "../model/Archivo.model.js";
 const getAllProductos = async (req, res) => {
   try {
     const allProductos = await Producto.findAll();
