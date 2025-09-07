@@ -53,20 +53,24 @@ const getProductoById = async (req, res) => {
 
 const createProducto = async (req, res) => {
   try {
-    const {
-      nombre,
+    const nombreImagen = req.file.filename;
+    const { nombre,
       descripcion,
-      precio,
-      imagenUrl,
-      stock
-    } = req.body;
+      precio, stock } = req.body
 
     // Validación básica de campos requeridos
-    if (!nombre || !descripcion || !precio || !imagenUrl || !stock) {
+    if (!nombre || !descripcion || !precio || !stock) {
       return res.status(400).json({
         status: 400,
         title: 'Bad Request',
-        message: 'Los campos nombre, descripción, precio, imagenUrl y stock son obligatorios'
+        message: 'Los campos nombre, descripción, precio y stock son obligatorios'
+      });
+    }
+    if (!nombreImagen) {
+      return res.status(400).json({
+        status: 400,
+        title: 'Bad Request',
+        message: 'La imagen es obligatoria'
       });
     }
 
@@ -74,7 +78,7 @@ const createProducto = async (req, res) => {
       nombre,
       descripcion,
       precio,
-      imagenUrl,
+      imagenUrl: `http://localhost:3000/api/v1/files/image/portadas/${nombreImagen}`,
       stock
     });
 

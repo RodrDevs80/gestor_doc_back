@@ -146,6 +146,76 @@ const deleteArchivo = async (req, res) => {
     }
   }
 }
+const deleteArchivosDeUnProducto = async (req, res) => {
+  try {
+    const { idProducto } = req.params; // id del producto
+
+
+    const archivos = await Archivo.findAll({
+      where: { idProducto }
+    })
+
+    const producto = await Producto.findByPk(idProducto);
+    if (!producto) {
+      return res.status(404).json({
+        error: "Producto no encontrado",
+        message: `El producto con ID ${idProducto} no existe`
+      });
+    }
+
+    if (archivos || archivos.length > 0) {
+      const filesRutas = archivos.map(archivo =>
+        path.join(process.cwd(), archivo.ruta)
+      );
+
+      //borrado del disco
+      const deleteResults = await Promise.allSettled(
+        filesRutas.map(filePath => {
+          return new Promise((resolve, reject) => {
+            if (fs.existsSync(filePath)) {
+              fs.unlink(filePath, (error) => {
+                if (error) {
+                  console.error(`Error eliminando ${filePath}:`, error);
+                  reject(error);
+                } else {
+                  console.log(`Archivo eliminado: ${filePath}`);
+                  resolve(filePath);
+                }
+              });
+            } else {
+              console.warn(`Archivo no encontrado: ${filePath}`);
+              resolve(null);
+            }
+          });
+        })
+      );
+
+      await Promise.all(
+        archivos.map(archivo => archivo.destroy())
+      );
+      return res.status(200).json({
+        success: true,
+        status: 200,
+        message: `Se eliminaron ${archivos.length} archivos correctamente`
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      status: 200,
+      message: `El producto no tenia archivos asociados`
+    });
+
+
+  } catch (err) {
+    console.error('Error general:', err);
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: "Error al intentar eliminar archivos",
+        message: err.message
+      });
+    }
+  }
+}
 const uploadsArchivos = async (req, res) => {
   try {
     const { id } = req.foundRecord;
@@ -183,6 +253,43 @@ const servidorDeImagenes = (req, res) => {
       return res.status(404).json({
         error: "Imagen no encontrada",
         message: `La imagen ${fileName} no existe para el producto ${productId}`
+      });
+    }
+
+    let contentType = 'application/octet-stream';
+    if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+      contentType = 'image/jpeg';
+    } else if (fileName.endsWith('.png')) {
+      contentType = 'image/png';
+    } else if (fileName.endsWith('.gif')) {
+      contentType = 'image/gif';
+    } else if (fileName.endsWith('.webp')) {
+      contentType = 'image/webp';
+    }
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache por 1 día
+
+    res.sendFile(imagePath);
+
+  } catch (error) {
+    console.error('Error al servir imagen:', error);
+    res.status(500).json({
+      error: "Error al cargar la imagen",
+      message: error.message
+    });
+  }
+}
+
+const servidorDeImagenDePortada = (req, res) => {
+  try {
+    const { fileName } = req.params;
+    const imagePath = path.join(__dirname, '..', 'uploads', 'productos', 'portadas', fileName);
+
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).json({
+        error: "Imagen no encontrada",
+        message: `La imagen ${fileName} no existe`
       });
     }
 
@@ -326,4 +433,4 @@ const getImgById = async (req, res) => {
     });
   }
 }
-export { uploadArchivo, getAllArchivosByIdProducto, downloadArchivo, deleteArchivo, uploadsArchivos, servidorDeImagenes, getAllImgsURLByIdProductos, getImgById }
+export { uploadArchivo, getAllArchivosByIdProducto, downloadArchivo, deleteArchivo, uploadsArchivos, servidorDeImagenes, getAllImgsURLByIdProductos, getImgById, servidorDeImagenDePortada, deleteArchivosDeUnProducto }

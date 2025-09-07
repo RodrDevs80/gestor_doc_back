@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { createProducto, deleteLogicoProducto, deleteProducto, getAllProductos, getAllProductosActivos, getProductoById, modificarImagenPrincipalDeProducto, updateProducto } from "../controller/producto.controller.js";
+import { uploadPortada } from "../middleware/multer.middleware.js";
 
 
 const routerProducto = Router();
@@ -11,7 +12,7 @@ routerProducto.get("/activos", getAllProductosActivos);
 
 routerProducto.get('/:id', getProductoById);
 
-routerProducto.post("/", createProducto);
+routerProducto.post("/", uploadPortada.single('imagenUrl[]'), createProducto);
 
 routerProducto.put('/:id', updateProducto);
 

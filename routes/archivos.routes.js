@@ -2,7 +2,7 @@ import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import validateExistencia from "../middleware/validateExistencia.js";
 import Producto from "../model/Producto.model.js";
-import { deleteArchivo, downloadArchivo, getAllArchivosByIdProducto, getAllImgsURLByIdProductos, getImgById, servidorDeImagenes, uploadArchivo, uploadsArchivos } from "../controller/archivo.controller.js";
+import { deleteArchivo, downloadArchivo, getAllArchivosByIdProducto, getAllImgsURLByIdProductos, getImgById, servidorDeImagenes, uploadArchivo, uploadsArchivos, servidorDeImagenDePortada, deleteArchivosDeUnProducto } from "../controller/archivo.controller.js";
 
 
 //: POST /api/v1/files/upload  implementar lógica: (ej: /uploads/productos/{id}).
@@ -22,6 +22,9 @@ routerArchivos.get('/:idProducto', validateExistencia(Producto, 'idProducto'), g
 routerArchivos.get('/download/:fileName', downloadArchivo);
 //eliminar archivo por id  http://localhost:3000/api/v1/files/9
 routerArchivos.delete('/:id', deleteArchivo);
+//eliminar todos los archivos de un producto
+//ejemplo http://localhost:3000/api/v1/files/1
+routerArchivos.delete('/:idProducto', deleteArchivosDeUnProducto);
 //subir y guardar en la base de datos multiples archivos
 //ejemplo http://localhost:3000/api/v1/files/upload/multiple/1
 routerArchivos.post('/upload/multiple/:idProducto', validateExistencia(Producto, 'idProducto'), upload.array('archivos', 10), uploadsArchivos)
@@ -29,6 +32,9 @@ routerArchivos.post('/upload/multiple/:idProducto', validateExistencia(Producto,
 // Endpoint para servir imágenes (ruta dinámica)
 //ejemplo: http://localhost:3000/api/v1/files/image/5/123456-abc123.jpg
 routerArchivos.get('/image/:productId/:fileName', servidorDeImagenes);
+// Endpoint para servir imágenes de portada (ruta dinámica)
+//ejemplo: http://localhost:3000/api/v1/files/image/portadas/123456-abc123.jpg
+routerArchivos.get('/image/portadas/:fileName', servidorDeImagenDePortada);
 
 // combina filesystem + base de datos- Trae todas las imágenes de un producto por su id
 routerArchivos.get('/imagenes-db/:productId', validateExistencia(Producto, 'productId'), getAllImgsURLByIdProductos);
