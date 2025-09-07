@@ -12,7 +12,7 @@ Esta API proporciona un sistema completo para gestionar productos y sus archivos
 - [Endpoints de la API](#endpoints-de-la-api)
   - [Productos](#endpoints-de-productos)
   - [Archivos](#endpoints-de-archivos)
-- [Ejemplos de Uso](#ejemplos-de-uso)
+- [Ejemplos de Uso Frontend](#ejemplos-de-uso-frontend)
 - [Manejo de Errores](#manejo-de-errores)
 - [Consideraciones de Seguridad](#consideraciones-de-seguridad)
 
@@ -37,7 +37,7 @@ Esta API proporciona un sistema completo para gestionar productos y sus archivos
 
    ```env
    PORT=3000
-   RAIZ=http://localhost:3000
+   RAIZ=/api/v1
    DATABASE=nombre_base_datos
    NAME=usuario_base_datos
    PASSWORD=contraseña_base_datos
@@ -85,16 +85,16 @@ Esta API proporciona un sistema completo para gestionar productos y sus archivos
 
 ## 🔧 Variables de Entorno
 
-| Variable | Descripción                    | Ejemplo               |
-| -------- | ------------------------------ | --------------------- |
-| PORT     | Puerto donde corre el servidor | 3000                  |
-| RAIZ     | URL base de la API             | http://localhost:3000 |
-| DATABASE | Nombre de la base de datos     | mi_tienda             |
-| NAME     | Usuario de la base de datos    | root                  |
-| PASSWORD | Contraseña de la base de datos | password123           |
-| HOST     | Host de la base de datos       | localhost             |
-| DIALECT  | Tipo de base de datos          | mysql                 |
-| DB_PORT  | Puerto de la base de datos     | 3306                  |
+| Variable | Descripción                    | Ejemplo     |
+| -------- | ------------------------------ | ----------- |
+| PORT     | Puerto donde corre el servidor | 3000        |
+| RAIZ     | URL base de la API             | /api/v1     |
+| DATABASE | Nombre de la base de datos     | mi_tienda   |
+| NAME     | Usuario de la base de datos    | root        |
+| PASSWORD | Contraseña de la base de datos | password123 |
+| HOST     | Host de la base de datos       | localhost   |
+| DIALECT  | Tipo de base de datos          | mysql       |
+| DB_PORT  | Puerto de la base de datos     | 3306        |
 
 ## 🗃️ Modelos de Base de Datos
 
@@ -131,24 +131,6 @@ Esta API proporciona un sistema completo para gestionar productos y sus archivos
 GET /api/v1/productos/all
 ```
 
-**Respuesta exitosa:**
-
-```json
-[
-  {
-    "id": 1,
-    "nombre": "Producto Ejemplo",
-    "descripcion": "Descripción del producto",
-    "precio": "29.99",
-    "imagenUrl": "http://localhost:3000/api/v1/files/image/1/imagen.jpg",
-    "activo": true,
-    "stock": 10,
-    "FechaDeCreacion": "2023-10-15T12:00:00.000Z",
-    "FechaDeActualizacion": "2023-10-15T12:00:00.000Z"
-  }
-]
-```
-
 #### Obtener productos activos
 
 ```
@@ -167,32 +149,10 @@ GET /api/v1/productos/:id
 POST /api/v1/productos/
 ```
 
-**Body:**
-
-```json
-{
-  "nombre": "Nuevo Producto",
-  "descripcion": "Descripción del nuevo producto",
-  "precio": 49.99,
-  "imagenUrl": "http://example.com/imagen.jpg",
-  "stock": 15
-}
-```
-
 #### Actualizar producto
 
 ```
 PUT /api/v1/productos/:id
-```
-
-**Body:** (campos opcionales)
-
-```json
-{
-  "nombre": "Producto Actualizado",
-  "precio": 39.99,
-  "stock": 20
-}
 ```
 
 #### Eliminación física de producto
@@ -221,31 +181,11 @@ PATCH /api/v1/productos/modificar-imagenUrl/:id/:idImagen
 POST /api/v1/files/upload/:idProducto
 ```
 
-**Headers:**
-
-```
-Content-Type: multipart/form-data
-```
-
-**Body:**
-
-- `archivo` (file): Archivo a subir
-
 #### Subir múltiples archivos para un producto
 
 ```
 POST /api/v1/files/upload/multiple/:idProducto
 ```
-
-**Headers:**
-
-```
-Content-Type: multipart/form-data
-```
-
-**Body:**
-
-- `archivos` (files): Múltiples archivos a subir (hasta 10)
 
 #### Obtener archivos de un producto
 
@@ -283,32 +223,30 @@ GET /api/v1/files/imagenes-db/:productId
 GET /api/v1/files/imagen-db/:id
 ```
 
-## 📋 Ejemplos de Uso
+## 📋 Ejemplos de Uso Frontend
 
 ### Ejemplo 1: Crear un producto y subir imágenes
 
 ```javascript
 // 1. Crear el producto
 const createProduct = async () => {
+  const formData = new FormData();
+  formData.append("nombre", "Smartphone XYZ");
+  formData.append("descripcion", "Último modelo con características avanzadas");
+  formData.append("precio", "599.99");
+  formData.append("stock", "25");
+  formData.append("imagenUrl[]", imageFile); // Archivo de imagen
+
   const response = await fetch("http://localhost:3000/api/v1/productos", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      nombre: "Smartphone XYZ",
-      descripcion: "Último modelo con características avanzadas",
-      precio: 599.99,
-      imagenUrl: "http://placeholder.com/phone.jpg",
-      stock: 25,
-    }),
+    body: formData,
   });
 
   const product = await response.json();
   return product.newProducto.id;
 };
 
-// 2. Subir imágenes para el producto
+// 2. Subir imágenes adicionales para el producto
 const uploadImages = async (productId) => {
   const formData = new FormData();
 
@@ -358,30 +296,182 @@ console.log("Producto:", product);
 console.log("Imágenes:", images.images);
 ```
 
-### Ejemplo 3: Usar imágenes en frontend
+### Ejemplo 3: Mostrar imágenes en HTML
 
 ```html
 <!-- Mostrar imagen principal -->
 <img
-  src="http://localhost:3000/api/v1/files/image/1/123456-abc123.jpg"
+  src="http://localhost:3000/api/v1/files/image/portadas/123456-abc123.jpg"
   alt="Nombre del producto"
+  class="product-main-image"
 />
 
-<!-- Galería de imágenes -->
+<!-- Galería de imágenes adicionales -->
 <div class="image-gallery">
   <script>
     fetch("http://localhost:3000/api/v1/files/imagenes-db/1")
       .then((response) => response.json())
       .then((data) => {
+        const gallery = document.querySelector(".image-gallery");
         data.images.forEach((image) => {
           const imgElement = document.createElement("img");
           imgElement.src = image.apiUrl;
           imgElement.alt = image.originalName;
-          document.querySelector(".image-gallery").appendChild(imgElement);
+          imgElement.classList.add("gallery-image");
+          gallery.appendChild(imgElement);
         });
-      });
+      })
+      .catch((error) => console.error("Error loading images:", error));
   </script>
 </div>
+```
+
+### Ejemplo 4: Formulario de creación de producto
+
+```html
+<form id="productForm" enctype="multipart/form-data">
+  <input type="text" name="nombre" placeholder="Nombre del producto" required />
+  <textarea name="descripcion" placeholder="Descripción" required></textarea>
+  <input
+    type="number"
+    name="precio"
+    step="0.01"
+    placeholder="Precio"
+    required
+  />
+  <input type="number" name="stock" placeholder="Stock" required />
+  <input type="file" name="imagenUrl[]" accept="image/*" required />
+  <button type="submit">Crear Producto</button>
+</form>
+
+<script>
+  document
+    .getElementById("productForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+
+      try {
+        const response = await fetch("http://localhost:3000/api/v1/productos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert("Producto creado exitosamente!");
+          // Redirigir o limpiar formulario
+        } else {
+          alert("Error: " + result.message);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Error al crear el producto");
+      }
+    });
+</script>
+```
+
+### Ejemplo 5: Gestión de productos con interfaz de usuario
+
+```javascript
+// Función para cargar y mostrar productos
+async function loadProducts() {
+  try {
+    const response = await fetch(
+      "http://localhost:3000/api/v1/productos/activos"
+    );
+    const products = await response.json();
+
+    const productsContainer = document.getElementById("products-container");
+    productsContainer.innerHTML = "";
+
+    products.forEach((product) => {
+      const productCard = `
+        <div class="product-card">
+          <img src="${product.imagenUrl}" alt="${product.nombre}">
+          <h3>${product.nombre}</h3>
+          <p>${product.descripcion.substring(0, 100)}...</p>
+          <p class="price">$${product.precio}</p>
+          <p class="stock">Stock: ${product.stock}</p>
+          <button onclick="viewProduct(${product.id})">Ver Detalles</button>
+        </div>
+      `;
+      productsContainer.innerHTML += productCard;
+    });
+  } catch (error) {
+    console.error("Error loading products:", error);
+  }
+}
+
+// Función para ver detalles del producto
+async function viewProduct(productId) {
+  const [product, images] = await Promise.all([
+    fetch(`http://localhost:3000/api/v1/productos/${productId}`).then((r) =>
+      r.json()
+    ),
+    fetch(`http://localhost:3000/api/v1/files/imagenes-db/${productId}`).then(
+      (r) => r.json()
+    ),
+  ]);
+
+  // Mostrar modal con detalles e imágenes
+  showProductModal(product, images);
+}
+
+// Cargar productos al iniciar
+document.addEventListener("DOMContentLoaded", loadProducts);
+```
+
+### Ejemplo 6: Subida múltiple de archivos con progreso
+
+```javascript
+async function uploadFiles(productId, files) {
+  const formData = new FormData();
+
+  // Agregar todos los archivos
+  Array.from(files).forEach((file) => {
+    formData.append("archivos", file);
+  });
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/v1/files/upload/multiple/${productId}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const result = await response.json();
+
+    if (response.ok) {
+      console.log("Archivos subidos exitosamente:", result);
+      return result;
+    } else {
+      throw new Error(result.message || "Error al subir archivos");
+    }
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    throw error;
+  }
+}
+
+// Uso con input de tipo file múltiple
+const fileInput = document.getElementById("file-input");
+fileInput.addEventListener("change", async (e) => {
+  const files = e.target.files;
+  if (files.length > 0) {
+    try {
+      await uploadFiles(1, files); // Reemplazar 1 con el ID del producto
+      alert("Archivos subidos exitosamente!");
+    } catch (error) {
+      alert("Error al subir archivos: " + error.message);
+    }
+  }
+});
 ```
 
 ## ⚠️ Manejo de Errores
