@@ -2,6 +2,10 @@
 
 Esta API proporciona un sistema completo para gestionar productos y sus archivos asociados (imágenes y documentos). Está construida con Node.js, Express.js y Sequelize como ORM para la base de datos.
 
+## Explicación en Video de funcionamiento de la API
+
+[![Explicación del Proyecto](https://www.youtube.com/watch?v=uVrfd2QaBIE/0.jpg)](https://www.youtube.com/watch?v=uVrfd2QaBIE)
+
 ## 📋 Tabla de Contenidos
 
 - [Requisitos del Sistema](#requisitos-del-sistema)
