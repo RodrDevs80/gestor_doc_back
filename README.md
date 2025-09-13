@@ -4,7 +4,7 @@ Esta API proporciona un sistema completo para gestionar productos y sus archivos
 
 ## Explicación en Video de funcionamiento de la API
 
-[![Explicación del Proyecto](https://www.youtube.com/watch?v=uVrfd2QaBIE/0.jpg)](https://www.youtube.com/watch?v=uVrfd2QaBIE)
+[![Explicación del Proyecto](https://www.youtube.com/watch?v=uVrfd2QaBIE/0.png)](https://www.youtube.com/watch?v=uVrfd2QaBIE)
 
 ## 📋 Tabla de Contenidos
 
